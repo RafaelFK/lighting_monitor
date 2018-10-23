@@ -1,4 +1,4 @@
-all: udp-client udp-server
+all: sensor_node cluster_head fake_border_router
 APPS=servreg-hack
 CONTIKI=/home/user/contiki
 

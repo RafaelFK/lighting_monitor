@@ -51,28 +51,14 @@
 #define UDP_CLIENT_BORDER_PORT  9876
 #define UDP_SERVER_BORDER_PORT  6789
 
+
 #define UDP_EXAMPLE_ID  190
 
 static struct uip_udp_conn *server_conn;
-static struct uip_udp_conn *border_router_conn;
-static uip_ipaddr_t border_router_ipaddr;
 
-PROCESS(udp_server_process, "UDP server process");
-AUTOSTART_PROCESSES(&udp_server_process);
+PROCESS(udp_border_router_process, "UDP border router process");
+AUTOSTART_PROCESSES(&udp_border_router_process);
 /*---------------------------------------------------------------------------*/
-static void
-send_packet_to_border(char* msg)
-{
-  // static int seq_id;
-  // char buf[MAX_PAYLOAD_LEN];
-
-  // seq_id++;
-  PRINTF("Repassado pacote para %d\n",
-         border_router_ipaddr.u8[sizeof(border_router_ipaddr.u8) - 1]);
-  uip_udp_packet_sendto(border_router_conn, msg, strlen(msg),
-                        &border_router_ipaddr, UIP_HTONS(UDP_SERVER_BORDER_PORT));
-}
-
 static void
 tcpip_handler(void)
 {
@@ -81,14 +67,10 @@ tcpip_handler(void)
   if(uip_newdata()) {
     appdata = (char *)uip_appdata;
     appdata[uip_datalen()] = 0;
-    PRINTF("DATA recv '%s' from ", appdata);
+    PRINTF("Border router recv '%s' from ", appdata);
     PRINTF("%d",
            UIP_IP_BUF->srcipaddr.u8[sizeof(UIP_IP_BUF->srcipaddr.u8) - 1]);
     PRINTF("\n");
-    
-    // Repassar mensagem para o roteador de borda
-    send_packet_to_border(appdata);
-
 #if SERVER_REPLY
     PRINTF("DATA sending reply\n");
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
@@ -118,7 +100,7 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(udp_server_process, ev, data)
+PROCESS_THREAD(udp_border_router_process, ev, data)
 {
   uip_ipaddr_t ipaddr;
   struct uip_ds6_addr *root_if;
@@ -148,7 +130,7 @@ PRINTF("UIP_CONF_ROUTER defined! UIP_CONF_ROUTER: %d\n", UIP_CONF_ROUTER);
 #elif 1
 /* Mode 2 - 16 bits inline */
   // Definir endereço aqui, com flag do make
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0x00ff, 0xfe00, 13);
 #else
 /* Mode 3 - derived from link local (MAC) address */
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
@@ -156,7 +138,7 @@ PRINTF("UIP_CONF_ROUTER defined! UIP_CONF_ROUTER: %d\n", UIP_CONF_ROUTER);
 #endif
 
   uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
-  root_if = uip_ds6_addr_lookup(&ipaddr);
+  /*root_if = uip_ds6_addr_lookup(&ipaddr);
   if(root_if != NULL) {
     rpl_dag_t *dag;
     dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)&ipaddr);
@@ -165,12 +147,9 @@ PRINTF("UIP_CONF_ROUTER defined! UIP_CONF_ROUTER: %d\n", UIP_CONF_ROUTER);
     PRINTF("created a new RPL dag\n");
   } else {
     PRINTF("failed to create a new RPL DAG\n");
-  }
+  }*/
 #endif /* UIP_CONF_ROUTER */
   
-  /* Definindo IP do roteador de borda */
-  uip_ip6addr(&border_router_ipaddr, 0xaaaa, 0, 0, 0, 0, 0x00ff, 0xfe00, 13);
-
   print_local_addresses();
 
   /* The data sink runs with a 100% duty cycle in order to ensure high 
@@ -178,35 +157,23 @@ PRINTF("UIP_CONF_ROUTER defined! UIP_CONF_ROUTER: %d\n", UIP_CONF_ROUTER);
   NETSTACK_MAC.off(1);
 
   // Criando conexão UDP na porta cliente
-  server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_SENSOR_PORT), NULL);
+  server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_BORDER_PORT), NULL);
   if(server_conn == NULL) {
-    PRINTF("No UDP connection available, exiting the process!\n");
+    PRINTF("Falha na conexao com cluster heads!\n");
     PROCESS_EXIT();
   }
   // Associando com a porta servidor 
-  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_SENSOR_PORT));
+  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_BORDER_PORT));
 
   PRINTF("Created a server connection with remote address ");
   PRINT6ADDR(&server_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
 
-  /* Estabelecendo conexão com o roteador de borda */
-  border_router_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_BORDER_PORT), NULL); 
-  if(border_router_conn == NULL) {
-    PRINTF("Falha ao conectar com roteador de borda!\n");
-    PROCESS_EXIT();
-  }
-  udp_bind(border_router_conn, UIP_HTONS(UDP_CLIENT_BORDER_PORT)); 
-
-  PRINTF("Conexao com roteador de borda criada");
-  PRINT6ADDR(&border_router_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n",
-	UIP_HTONS(border_router_conn->lport), UIP_HTONS(border_router_conn->rport));
-
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {
+      PRINTF("UDP event border router\n");
       tcpip_handler();
     } else if (ev == sensors_event && data == &button_sensor) {
       PRINTF("Initiaing global repair\n");
