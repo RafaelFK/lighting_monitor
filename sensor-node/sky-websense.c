@@ -79,7 +79,7 @@ get_temp(void)
   return ((sht11_sensor.value(SHT11_SENSOR_TEMP) / 10) - 396) / 10;
 }
 /*---------------------------------------------------------------------------*/
-static const char *TOP = "<html><head><title>Sensor Node</title></head><body>\n";
+static const char *TOP = "<html><head><title>Contiki Web Sense</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
 /*---------------------------------------------------------------------------*/
 /* Only one single request at time */
@@ -115,9 +115,10 @@ PT_THREAD(send_values(struct httpd_state *s))
     /* Default page: show latest sensor values as text (does not
        require Internet connection to Google for charts). */
     blen = 0;
-    ADD("<h1>Current reading</h1>\n"
-        "Light: %u<br>",
-        get_light());
+    ADD("<h1>Current readings</h1>\n"
+        "Light: %u<br>"
+        "Temperature: %u&deg; C",
+        get_light(), get_temp());
     SEND_STRING(&s->sout, buf);
 
   } else if(s->filename[1] == '0') {

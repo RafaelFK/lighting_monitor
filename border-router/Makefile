@@ -1,4 +1,4 @@
-CONTIKI_PROJECT=border-router
+CONTIKI_PROJECT=border_router
 all: $(CONTIKI_PROJECT) 
 
 CONTIKI=/home/user/contiki
