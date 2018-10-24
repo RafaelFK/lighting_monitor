@@ -185,20 +185,20 @@ PROCESS_THREAD(udp_client_process, ev, data)
       tcpip_handler();
     }
     
-    if(etimer_expired(&periodic)) {
-      etimer_reset(&periodic);
-      ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);
+//     if(etimer_expired(&periodic)) {
+//       etimer_reset(&periodic);
+//       ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);
 
-#if WITH_COMPOWER
-      if (print == 0) {
-	powertrace_print("#P");
-      }
-      if (++print == 3) {
-	print = 0;
-      }
-#endif
+// #if WITH_COMPOWER
+//       if (print == 0) {
+// 	powertrace_print("#P");
+//       }
+//       if (++print == 3) {
+// 	print = 0;
+//       }
+// #endif
 
-    }
+//     }
   }
 
   PROCESS_END();
