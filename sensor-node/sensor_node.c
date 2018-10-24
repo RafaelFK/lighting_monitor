@@ -107,41 +107,43 @@ static
 PT_THREAD(send_values(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
-
-  SEND_STRING(&s->sout, TOP);
-
-  if(strncmp(s->filename, "/index", 6) == 0 ||
-     s->filename[1] == '\0') {
-    /* Default page: show latest sensor values as text (does not
-       require Internet connection to Google for charts). */
-    blen = 0;
-    ADD("<h1>Current reading</h1>\n"
-        "Light: %u<br>",
-        get_light());
-    SEND_STRING(&s->sout, buf);
-
-  } else if(s->filename[1] == '0') {
-    /* Turn off leds */
-    leds_off(LEDS_ALL);
-    SEND_STRING(&s->sout, "Turned off leds!");
-
-  } else if(s->filename[1] == '1') {
-    /* Turn on leds */
-    leds_on(LEDS_ALL);
-    SEND_STRING(&s->sout, "Turned on leds!");
-
-  } else {
-    if(s->filename[1] != 't') {
-      generate_chart("Light", "Light", 0, 500, light1);
+  if(s->filename[1] == 'j') {
+      blen = 0;
+      ADD("{light:%u}",get_light());
       SEND_STRING(&s->sout, buf);
-    }
-    if(s->filename[1] != 'l') {
-      generate_chart("Temperature", "Celsius", 15, 50, temperature);
+  }else {
+    SEND_STRING(&s->sout, TOP);
+    
+    if(strncmp(s->filename, "/index", 6) == 0 ||
+
+       s->filename[1] == '\0') {
+      /* Default page: show latest sensor values as text (does not
+         require Internet connection to Google for charts). */
+      blen = 0;
+      ADD("<h1>Current reading</h1>\n"
+          "Light: %u<br>",
+          get_light());
       SEND_STRING(&s->sout, buf);
+
+    } else if(s->filename[1] == '0') {
+      /* Turn off leds */
+      leds_off(LEDS_ALL);
+      SEND_STRING(&s->sout, "Turned off leds!");
+
+    } else if(s->filename[1] == '1') {
+      /* Turn on leds */
+      leds_on(LEDS_ALL);
+      SEND_STRING(&s->sout, "Turned on leds!");
+
+    } else {
+      if(s->filename[1] != 't') {
+        generate_chart("Light", "Light", 0, 500, light1);
+        SEND_STRING(&s->sout, buf);
+      }
     }
+    SEND_STRING(&s->sout, BOTTOM);
   }
 
-  SEND_STRING(&s->sout, BOTTOM);
 
   PSOCK_END(&s->sout);
 }

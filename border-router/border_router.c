@@ -159,6 +159,9 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
+
+  if(strncmp(s->filename, "/index", 6) == 0 ||
+     s->filename[1] == '\0') {
 #if BUF_USES_STACK
   bufptr = buf;bufend=bufptr+sizeof(buf);
 #else
@@ -273,8 +276,12 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 #endif
 
   SEND_STRING(&s->sout, buf);
-  SEND_STRING(&s->sout, BOTTOM);
+  } else {
+      SEND_STRING(&s->sout, "");
+  }
+  
 
+  SEND_STRING(&s->sout, BOTTOM);
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
