@@ -57,6 +57,9 @@
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
 #define MAX_PAYLOAD_LEN		30
 
+#define MAX_LUX_READING 1000
+#define LUX_READING (random_rand() % (MAX_LUX_READING))
+
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;
 
@@ -83,9 +86,9 @@ send_packet(void *ptr)
   char buf[MAX_PAYLOAD_LEN];
 
   seq_id++;
-  PRINTF("DATA send to %d 'Hello %d'\n",
-         server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1], seq_id);
-  sprintf(buf, "Hello %d from the client", seq_id);
+  PRINTF("READING send to %d\n",
+         server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1]);
+  sprintf(buf, "%d", LUX_READING);
   uip_udp_packet_sendto(client_conn, buf, strlen(buf),
                         &server_ipaddr, UIP_HTONS(UDP_SERVER_PORT));
 }
