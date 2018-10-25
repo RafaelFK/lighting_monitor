@@ -22,51 +22,63 @@
 			<tbody>
 				<tr>
 					<td>#1</td>
-					<td>-</td>
+					<td id="1">-</td>
 				</tr>
 				<tr>
 					<td>#2</td>
-					<td>-</td>
+					<td id="2">-</td>
 				</tr>
 				<tr>
 					<td>#3</td>
-					<td>-</td>
+					<td id="3">-</td>
 				</tr>
 				<tr>
 					<td>#4</td>
-					<td>-</td>
+					<td id="4">-</td>
 				</tr>
 				<tr>
 					<td>#5</td>
-					<td>-</td>
+					<td id="5">-</td>
 				</tr>
 				<tr>
 					<td>#6</td>
-					<td>-</td>
+					<td id="6">-</td>
 				</tr>
 				<tr>
 					<td>#7</td>
-					<td>-</td>
+					<td id="7">-</td>
 				</tr>
 				<tr>
 					<td>#8</td>
-					<td>-</td>
+					<td id="8">-</td>
 				</tr>
 				<tr>
 					<td>#9</td>
-					<td>-</td>
+					<td id="9">-</td>
 				</tr>
 				<tr>
 					<td>#10</td>
-					<td>-</td>
+					<td id="10">-</td>
 				</tr>
 				<tr>
 					<td>#11</td>
-					<td>-</td>
+					<td id="11">-</td>
 				</tr>
 				<tr>
 					<td>#12</td>
-					<td>-</td>
+					<td id="12">-</td>
+				</tr>
+				<tr>
+					<td>#13</td>
+					<td id="13">-</td>
+				</tr>
+				<tr>
+					<td>#14</td>
+					<td id="14">-</td>
+				</tr>
+				<tr>
+					<td>#15</td>
+					<td id="15">-</td>
 				</tr>
 			</tbody>
 			<tfoot>
@@ -76,5 +88,51 @@
 			</div>
 		</div>
 	</div>
+	<script>
+		$(document).ready(function() {
+			var id_offset = 4;
+
+			function periodic_update(node_id, period) {
+				console.log("Requesting " + node_id);
+				$.ajax({
+  					dataType: "json",
+  					url: '/sensors/' + (node_id + id_offset),
+  					success: function(data) {
+  						console.log("Got " + node_id);
+  						$.each(data, function(id, reading) { $("#"+(id-id_offset)).html(reading) });
+  					},
+  					complete: function() {
+  						setTimeout(function() { periodic_update(node_id) }, period)
+  					}
+				});
+			}
+
+			function start_monitoring(node_id, period) {
+				setTimeout(
+					function() {
+						periodic_update(node_id, period)
+					},
+					period
+				);
+			}
+
+			// Iniciando monitoramento dos sensores
+			start_monitoring(1, 30000);
+			setTimeout(function() { start_monitoring(2, 30000)}, 5000);
+			setTimeout(function() { start_monitoring(3, 30000)}, 15000);
+			setTimeout(function() { start_monitoring(4, 30000)}, 25000);
+			setTimeout(function() { start_monitoring(5, 30000)}, 35000);
+			setTimeout(function() { start_monitoring(6, 30000)}, 45000);
+			setTimeout(function() { start_monitoring(7, 30000)}, 55000);
+			setTimeout(function() { start_monitoring(8, 30000)}, 65000);
+			setTimeout(function() { start_monitoring(9, 30000)}, 75000);
+			setTimeout(function() { start_monitoring(10, 30000)}, 85000);
+			setTimeout(function() { start_monitoring(11, 30000)}, 95000);
+			setTimeout(function() { start_monitoring(12, 30000)}, 105000);
+			setTimeout(function() { start_monitoring(13, 30000)}, 115000);
+			setTimeout(function() { start_monitoring(14, 30000)}, 125000);
+			setTimeout(function() { start_monitoring(15, 30000)}, 135000);
+		});
+	</script>
 </body>
 </html>
