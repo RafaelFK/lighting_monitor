@@ -159,9 +159,6 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, TOP);
-
-  if(strncmp(s->filename, "/index", 6) == 0 ||
-     s->filename[1] == '\0') {
 #if BUF_USES_STACK
   bufptr = buf;bufend=bufptr+sizeof(buf);
 #else
@@ -216,72 +213,68 @@ PT_THREAD(generate_routes(struct httpd_state *s))
       }
 #endif
   }
-  ADD("</pre>Routes<pre>");
+//   ADD("</pre>Routes<pre>");
+//   SEND_STRING(&s->sout, buf);
+// #if BUF_USES_STACK
+//   bufptr = buf; bufend = bufptr + sizeof(buf);
+// #else
+//   blen = 0;
+// #endif
+
+//   for(r = uip_ds6_route_head(); r != NULL; r = uip_ds6_route_next(r)) {
+
+// #if BUF_USES_STACK
+// #if WEBSERVER_CONF_ROUTE_LINKS
+//     ADD("<a href=http://[");
+//     ipaddr_add(&r->ipaddr);
+//     ADD("]/status.shtml>");
+//     ipaddr_add(&r->ipaddr);
+//     ADD("</a>");
+// #else
+//     ipaddr_add(&r->ipaddr);
+// #endif
+// #else
+// #if WEBSERVER_CONF_ROUTE_LINKS
+//     ADD("<a href=http://[");
+//     ipaddr_add(&r->ipaddr);
+//     ADD("]/status.shtml>");
+//     SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
+//     blen = 0;
+//     ipaddr_add(&r->ipaddr);
+//     ADD("</a>");
+// #else
+//     ipaddr_add(&r->ipaddr);
+// #endif
+// #endif
+//     ADD("/%u (via ", r->length);
+//     ipaddr_add(uip_ds6_route_nexthop(r));
+//     if(1 || (r->state.lifetime < 600)) {
+//       ADD(") %lus\n", r->state.lifetime);
+//     } else {
+//       ADD(")\n");
+//     }
+//     SEND_STRING(&s->sout, buf);
+// #if BUF_USES_STACK
+//     bufptr = buf; bufend = bufptr + sizeof(buf);
+// #else
+//     blen = 0;
+// #endif
+//   }
+//   ADD("</pre>");
+
+// #if WEBSERVER_CONF_FILESTATS
+//   static uint16_t numtimes;
+//   ADD("<br><i>This page sent %u times</i>",++numtimes);
+// #endif
+
+// #if WEBSERVER_CONF_LOADTIME
+//   numticks = clock_time() - numticks + 1;
+//   ADD(" <i>(%u.%02u sec)</i>",numticks/CLOCK_SECOND,(100*(numticks%CLOCK_SECOND))/CLOCK_SECOND));
+// #endif
+
   SEND_STRING(&s->sout, buf);
-#if BUF_USES_STACK
-  bufptr = buf; bufend = bufptr + sizeof(buf);
-#else
-  blen = 0;
-#endif
-
-  for(r = uip_ds6_route_head(); r != NULL; r = uip_ds6_route_next(r)) {
-
-#if BUF_USES_STACK
-#if WEBSERVER_CONF_ROUTE_LINKS
-    ADD("<a href=http://[");
-    ipaddr_add(&r->ipaddr);
-    ADD("]/status.shtml>");
-    ipaddr_add(&r->ipaddr);
-    ADD("</a>");
-#else
-    ipaddr_add(&r->ipaddr);
-#endif
-#else
-#if WEBSERVER_CONF_ROUTE_LINKS
-    ADD("<a href=http://[");
-    ipaddr_add(&r->ipaddr);
-    ADD("]/status.shtml>");
-    SEND_STRING(&s->sout, buf); //TODO: why tunslip6 needs an output here, wpcapslip does not
-    blen = 0;
-    ipaddr_add(&r->ipaddr);
-    ADD("</a>");
-#else
-    ipaddr_add(&r->ipaddr);
-#endif
-#endif
-    ADD("/%u (via ", r->length);
-    ipaddr_add(uip_ds6_route_nexthop(r));
-    if(1 || (r->state.lifetime < 600)) {
-      ADD(") %lus\n", r->state.lifetime);
-    } else {
-      ADD(")\n");
-    }
-    SEND_STRING(&s->sout, buf);
-#if BUF_USES_STACK
-    bufptr = buf; bufend = bufptr + sizeof(buf);
-#else
-    blen = 0;
-#endif
-  }
-  ADD("</pre>");
-
-#if WEBSERVER_CONF_FILESTATS
-  static uint16_t numtimes;
-  ADD("<br><i>This page sent %u times</i>",++numtimes);
-#endif
-
-#if WEBSERVER_CONF_LOADTIME
-  numticks = clock_time() - numticks + 1;
-  ADD(" <i>(%u.%02u sec)</i>",numticks/CLOCK_SECOND,(100*(numticks%CLOCK_SECOND))/CLOCK_SECOND));
-#endif
-
-  SEND_STRING(&s->sout, buf);
-  } else {
-      SEND_STRING(&s->sout, "");
-  }
-  
-
   SEND_STRING(&s->sout, BOTTOM);
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
